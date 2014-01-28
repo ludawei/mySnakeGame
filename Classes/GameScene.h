@@ -15,7 +15,7 @@
 USING_NS_CC;
 
 static const int col_num = 16;
-static const int row_num = 28;
+static const int row_num = 20;
 
 class GameScene : public cocos2d::Layer
 {
@@ -46,6 +46,8 @@ public:
     
     SpriteBatchNode* bgItemBatch;
     Point getBgItemPozitionByTag(int tag);
+    
+    void resetGame();
 };
 
 #endif /* defined(__MyGame__GameScene__) */

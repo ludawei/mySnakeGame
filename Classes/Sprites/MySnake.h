@@ -29,6 +29,8 @@ public:
     void changeType(SnakeMoveType type);
     void changeRandomSpritePozition();
     
+    bool isNormal;
+    
 private:
     Size visibleSize;
     
@@ -39,6 +41,8 @@ private:
     void moveSnake(float dt);
     void modifyPozition(Node *node);
     void moveSnakeHeader();
+    void addSnake(int index);
+    void checkGameOver();
 };
 
 #endif /* defined(__MyGame__MySnake__) */

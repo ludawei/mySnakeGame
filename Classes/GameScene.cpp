@@ -47,7 +47,7 @@ bool GameScene::init()
     mySharedGameScene = this;
     
     visibleSize = Director::getInstance()->getVisibleSize();
-    Point origin = Director::getInstance()->getVisibleOrigin();
+//    Point origin = Director::getInstance()->getVisibleOrigin();
     
     /////////////////////////////
     // 2. add a menu item with "X" image, which is clicked to quit the program
@@ -59,43 +59,36 @@ bool GameScene::init()
     auto leftLabel = LabelTTF::create("Left", "Arial", 50);
     auto leftItem = MenuItemLabel::create(leftLabel, CC_CALLBACK_1(GameScene::menuCallback, this));
     leftItem->setTag(moveTypeLeft+MENU_ITEM_TAG);
-	leftItem->setPosition(200, 200);
+	leftItem->setPosition(320, 150);
     
     auto rightLabel = LabelTTF::create("Right", "Arial", 50);
     auto rightItem = MenuItemLabel::create(rightLabel, CC_CALLBACK_1(GameScene::menuCallback, this));
     rightItem->setTag(moveTypeRight+MENU_ITEM_TAG);
-	rightItem->setPosition(400, 200);
+	rightItem->setPosition(580, 150);
     
     auto upLabel = LabelTTF::create("Up", "Arial", 50);
     auto upItem = MenuItemLabel::create(upLabel, CC_CALLBACK_1(GameScene::menuCallback, this));
     upItem->setTag(moveTypeUp+MENU_ITEM_TAG);
-	upItem->setPosition(300, 250);
+	upItem->setPosition(450, 230);
     
     auto downLabel = LabelTTF::create("Down", "Arial", 50);
     auto downItem = MenuItemLabel::create(downLabel, CC_CALLBACK_1(GameScene::menuCallback, this));
     downItem->setTag(moveTypeDown+MENU_ITEM_TAG);
-	downItem->setPosition(300, 150);
+	downItem->setPosition(450, 70);
+    
+    auto stopStartLabel = LabelTTF::create("stop", "Arial", 50);
+    auto stopStartItem = MenuItemLabel::create(stopStartLabel, CC_CALLBACK_1(GameScene::menuCallback, this));
+    stopStartItem->setTag(10+MENU_ITEM_TAG);
+	stopStartItem->setPosition(80, 250);
     
     // create menu, it's an autorelease object
-    auto menu = Menu::create(leftItem, rightItem, upItem, downItem, NULL);
+    auto menu = Menu::create(leftItem, rightItem, upItem, downItem, stopStartItem, NULL);
     
     menu->setPosition(Point::ZERO);
-    this->addChild(menu, 1);
+    this->addChild(menu, 10);
     
     /////////////////////////////
     // 3. add your codes below...
-    
-    // add a label shows "Hello World"
-    // create and initialize a label
-    
-    auto label = LabelTTF::create("Hello World", "Arial", 24);
-    
-    // position the label on the center of the screen
-    label->setPosition(Point(origin.x + visibleSize.width/2,
-                             origin.y + visibleSize.height - label->getContentSize().height));
-    
-    // add the label as a child to this layer
-    this->addChild(label, 1);
     
     bgItemBatch = SpriteBatchNode::create("bg_item.png");
 //    bg_item->setPosition(Point::ZERO);
@@ -162,22 +155,40 @@ void GameScene::onTouchEnded(cocos2d::Touch *touch, cocos2d::Event *unused_event
 
 void GameScene::menuCallback(Object* pSender)
 {
-    if (lastClickTime == 0) {
-        lastClickTime = MyUtil::getCurrentTime();
-    }
-    
-    long tempTime = MyUtil::getCurrentTime();
-    if (tempTime - lastClickTime <= 0.5 * 1000) {
+    auto item = (MenuItemLabel *)pSender;
+    if (item->getTag() == 10 + MENU_ITEM_TAG) {
+        
+        auto stopStartLabel = (LabelTTF *)item->getLabel();
+        if (strcmp(stopStartLabel->getString().c_str(), "stop") == 0) {
+            stopStartLabel->setString("start");
+            Director::getInstance()->pause();
+        }
+        else
+        {
+            stopStartLabel->setString("stop");
+            Director::getInstance()->resume();
+        }
         return;
     }
     
-    lastClickTime = tempTime;
-    auto item = (MenuItemLabel *)pSender;
+    if (!snake->isNormal) {
+        return;
+    }
     SnakeMoveType type =(SnakeMoveType)(item->getTag()-MENU_ITEM_TAG);
     snake->changeType(type);
+    
+    snake->isNormal = false;
 }
 
 Point GameScene::getBgItemPozitionByTag(int tag)
 {
     return bgItemBatch->getChildByTag(tag)->getPosition();
+}
+
+void GameScene::resetGame()
+{
+//    snake = NULL;
+    snake->removeFromParentAndCleanup(true);
+    snake = MySnake::create("Icon-40.png");
+    this->addChild(snake, 2);
 }

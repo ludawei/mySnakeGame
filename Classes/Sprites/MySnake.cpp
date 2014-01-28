@@ -10,6 +10,7 @@
 #include "cocos-ext.h"
 #include "MyUtil.h"
 #include "GameScene.h"
+#include "GameOverScene.h"
 
 static int batchNodeStartTag = 200;
 
@@ -60,10 +61,22 @@ void MySnake::initData()
     
     unschedule(schedule_selector(MySnake::moveSnake));
     schedule(schedule_selector(MySnake::moveSnake), 0.5f);
+    
+    isNormal = true;
+}
+
+void MySnake::addSnake(int index)
+{
+    MySprite *sprite = MySprite::create(this->getTexture());
+    sprite->setAnchorPoint(Point(0, 1));
+    sprite->setTag(getChildrenCount()-1+batchNodeStartTag);
+    sprite->setIndex(index);
+    this->addChild(sprite);
 }
 
 void MySnake::moveSnake(float dt)
 {
+    MySprite *footSnake = (MySprite *)getChildByTag(getChildrenCount()-2+batchNodeStartTag);
     for (int i=getChildrenCount()-2; i >= 0; i--) {
         MySprite *sprite = (MySprite *)getChildByTag(i+batchNodeStartTag);
         MySprite *sprite1 = (MySprite *)getChildByTag(i-1+batchNodeStartTag);
@@ -75,7 +88,16 @@ void MySnake::moveSnake(float dt)
             this->moveSnakeHeader();
         }
     }
-    log("%f", dt);
+    
+    if (snakeHeader->getIndex() == randomSprite->getIndex()) {
+        
+        addSnake(footSnake->getIndex());
+        changeRandomSpritePozition();
+    }
+    
+    checkGameOver();
+    
+    isNormal = true;
 }
 
 void MySnake::moveSnakeHeader()
@@ -131,16 +153,34 @@ void MySnake::changeType(SnakeMoveType type)
 
 void MySnake::changeRandomSpritePozition()
 {
-    int randIndex = CCRANDOM_0_1() * col_num*row_num;
-    for (int i = 0; i < 10; i++) {
-        for (int i=0; i < getChildrenCount()-1; i++) {
-            MySprite *sprite = (MySprite *)getChildByTag(i+batchNodeStartTag);
-            
-            if (randIndex == sprite->getIndex()) {
-                randIndex = CCRANDOM_0_1() * col_num*row_num;
-            }
+    Array *totalArray = Array::createWithCapacity(col_num * row_num);
+    for (int i=0; i<totalArray->capacity(); i++) {
+        totalArray->addObject(Integer::create(i));
+    }
+    
+    for (int i=0; i < getChildrenCount()-1; i++) {
+        MySprite *sprite = (MySprite *)getChildByTag(i+batchNodeStartTag);
+        
+        totalArray->removeObjectAtIndex(sprite->getIndex());
+    }
+    
+    int randIndex = (CCRANDOM_0_1()+1) * totalArray->count();
+    randIndex = CCRANDOM_0_1() * totalArray->count();
+    Integer* pozitionIndex = (Integer *)totalArray->getObjectAtIndex(randIndex);
+ 
+    randomSprite->setIndex(pozitionIndex->getValue());
+}
+
+void MySnake::checkGameOver()
+{
+    for (int i=1; i < getChildrenCount()-1; i++) {
+        MySprite *sprite = (MySprite *)getChildByTag(i+batchNodeStartTag);
+        
+        if (sprite->getIndex() == snakeHeader->getIndex()) {
+            auto scene = GameOverScene::createScene();
+            Director::getInstance()->pushScene(scene);
         }
     }
- 
-    randomSprite->setIndex(randIndex);
 }
+
+
